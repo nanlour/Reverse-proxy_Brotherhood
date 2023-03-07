@@ -5,44 +5,37 @@ from threading import Thread
 
 def echo_handler_s(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
-    while not queue_c.empty():
-        queue_c.get()
-    while not queue_s.empty():
-        queue_s.get()
-    print(1)
-    while True:
-        msg_s = queue_s.get()
-        print(5, msg_s)
-        if not msg_s:
-            print(6)
-            break
-        client_sock.sendall(msg_s)
+
+    def s_c(queue_c, client_sock):
         msg_c = client_sock.recv(8192)
-        if not msg_c:
-            break
         queue_c.put(msg_c)
+
+    def c_s(queue_s, client_sock):
+        msg_s = queue_s.get()
+        client_sock.sendall(msg_s)
+
+    t1 = Thread(target=c_s, args=(queue_s, client_sock))
+    t2 = Thread(target=s_c, args=(queue_c, client_sock))
+    t1.start()
+    t2.start()
     client_sock.close()
 
 
 def echo_handler_c(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
-    print(3)
-    while not queue_c.empty():
-        queue_c.get()
-    while not queue_s.empty():
-        queue_s.get()
-    print(2)
-    while True:
+    def c_s(queue_s, client_sock):
         msg_s = client_sock.recv(8192)
         queue_s.put(msg_s)
-        print(4)
-        if not msg_s:
-            break
+
+    def s_c(queue_c, client_sock):
         msg_c = queue_c.get()
-        if not msg_c:
-            break
         client_sock.sendall(msg_c)
-    client_sock.close()
+
+    t1 = Thread(target=c_s, args=(queue_s, client_sock))
+    t2 = Thread(target=s_c, args=(queue_c, client_sock))
+    t1.start()
+    t2.start()
+    #client_sock.close()
 
 
 def echo_server(address, queue_s, queue_c, s_c, backlog=5):

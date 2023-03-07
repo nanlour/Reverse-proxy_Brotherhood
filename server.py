@@ -9,9 +9,9 @@ VPS = '127.0.0.1'
 def server():
     s_p = socket(AF_INET, SOCK_STREAM)
     s_p.connect((VPS, 8000))
+    print(2)
     s_s = socket(AF_INET, SOCK_STREAM)
     s_s.connect(('localhost', 22))
-    print(2)
     while True:
         msg_s = s_p.recv(8192)
         print(msg_s)
