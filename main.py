@@ -7,8 +7,9 @@ def echo_handler_s(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
 
     def c_s(queue_s, client_sock):
-        msg_s = queue_s.get()
-        client_sock.sendall(msg_s)
+        while True:
+            msg_s = queue_s.get()
+            client_sock.sendall(msg_s)
 
     t = Thread(target=c_s, args=(queue_s, client_sock))
     t.start()
@@ -26,8 +27,9 @@ def echo_handler_c(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
 
     def s_c(queue_c, client_sock):
-        msg_c = queue_c.get()
-        client_sock.sendall(msg_c)
+        while True:
+            msg_c = queue_c.get()
+            client_sock.sendall(msg_c)
 
     t = Thread(target=s_c, args=(queue_c, client_sock))
     t.start()
