@@ -6,44 +6,37 @@ from threading import Thread
 def echo_handler_s(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
 
-    def s_c(queue_c, client_sock):
-        print(1)
-        msg_c = client_sock.recv(8192)
-        print(1, msg_c)
-        queue_c.put(msg_c)
-
     def c_s(queue_s, client_sock):
-        print(2)
         msg_s = queue_s.get()
-        print(2, msg_s)
         client_sock.sendall(msg_s)
 
-    t1 = Thread(target=c_s, args=(queue_s, client_sock))
-    t2 = Thread(target=s_c, args=(queue_c, client_sock))
-    t1.start()
-    t2.start()
+    t = Thread(target=c_s, args=(queue_s, client_sock))
+    t.start()
+    while True:
+        msg_c = client_sock.recv(8192)
+        queue_c.put(msg_c)
+        print(msg_c)
+        if not msg_c:
+            return 0
+
     # client_sock.close()
 
 
 def echo_handler_c(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
 
-    def c_s(queue_s, client_sock):
-        print(3)
-        msg_s = client_sock.recv(8192)
-        print(3, msg_s)
-        queue_s.put(msg_s)
-
     def s_c(queue_c, client_sock):
-        print(4)
         msg_c = queue_c.get()
-        print(4, msg_c)
         client_sock.sendall(msg_c)
 
-    t1 = Thread(target=c_s, args=(queue_s, client_sock))
-    t2 = Thread(target=s_c, args=(queue_c, client_sock))
-    t1.start()
-    t2.start()
+    t = Thread(target=s_c, args=(queue_c, client_sock))
+    t.start()
+    while True:
+        msg_s = client_sock.recv(8192)
+        queue_s.put(msg_s)
+        print(msg_s)
+        if not msg_s:
+            return 0
     # client_sock.close()
 
 
@@ -52,14 +45,12 @@ def echo_server(address, queue_s, queue_c, s_c, backlog=5):
     sock.bind(address)
     sock.listen(backlog)
     while True:
-        try:
-            client_sock, client_addr = sock.accept()
-            if s_c:
-                echo_handler_s(client_addr, client_sock, queue_s, queue_c)
-            else:
-                echo_handler_c(client_addr, client_sock, queue_s, queue_c)
-        except:
-            pass
+        client_sock, client_addr = sock.accept()
+        if s_c:
+            echo_handler_s(client_addr, client_sock, queue_s, queue_c)
+        else:
+            echo_handler_c(client_addr, client_sock, queue_s, queue_c)
+        print(s_c + 10)
 
 
 if __name__ == '__main__':

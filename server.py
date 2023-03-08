@@ -19,19 +19,18 @@ def echo_handler_s(client_sock, queue_s, queue_c):
         client_sock.sendall(msg_s)
         print(2)
 
-    t1 = Thread(target=c_s, args=(queue_s, client_sock))
-    t2 = Thread(target=s_c, args=(queue_c, client_sock))
-    t1.start()
-    t2.start()
+    t = Thread(target=c_s, args=(queue_s, client_sock))
+    t.start()
+    while True:
+        msg_c = client_sock.recv(8192)
+        print(1, msg_c)
+        if not msg_c:
+            return 0
+        queue_c.put(msg_c)
     # client_sock.close()
 
 
 def echo_handler_c(client_sock, queue_s, queue_c):
-    def c_s(queue_s, client_sock):
-        msg_s = client_sock.recv(8192)
-        print(3, msg_s)
-        queue_s.put(msg_s)
-        print(3)
 
     def s_c(queue_c, client_sock):
         msg_c = queue_c.get()
@@ -39,10 +38,14 @@ def echo_handler_c(client_sock, queue_s, queue_c):
         client_sock.sendall(msg_c)
         print(4)
 
-    t1 = Thread(target=c_s, args=(queue_s, client_sock))
-    t2 = Thread(target=s_c, args=(queue_c, client_sock))
-    t1.start()
-    t2.start()
+    t = Thread(target=s_c, args=(queue_c, client_sock))
+    t.start()
+    while True:
+        msg_s = client_sock.recv(8192)
+        if not msg_s:
+            return 0
+        queue_s.put(msg_s)
+        print(msg_s)
     # client_sock.close()
 
 
@@ -50,7 +53,6 @@ def echo_server(address, queue_s, queue_c, s_c):
     client_sock = socket(AF_INET, SOCK_STREAM)
     client_sock.connect(address)
     while True:
-
         if s_c:
             echo_handler_s(client_sock, queue_s, queue_c)
         else:
