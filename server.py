@@ -49,15 +49,11 @@ def echo_handler_c(client_sock, queue_s, queue_c):
 def echo_server(address, queue_s, queue_c, s_c):
     client_sock = socket(AF_INET, SOCK_STREAM)
     while True:
-        try:
-            client_sock.connect(address)
-            if s_c:
-                echo_handler_s(client_sock, queue_s, queue_c)
-            else:
-                echo_handler_c(client_sock, queue_s, queue_c)
-        except:
-            print(9)
-            pass
+        client_sock.connect(address)
+        if s_c:
+            echo_handler_s(client_sock, queue_s, queue_c)
+        else:
+            echo_handler_c(client_sock, queue_s, queue_c)
 
 
 if __name__ == '__main__':
