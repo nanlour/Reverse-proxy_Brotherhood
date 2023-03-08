@@ -48,8 +48,9 @@ def echo_handler_c(client_sock, queue_s, queue_c):
 
 def echo_server(address, queue_s, queue_c, s_c):
     client_sock = socket(AF_INET, SOCK_STREAM)
+    client_sock.connect(address)
     while True:
-        client_sock.connect(address)
+
         if s_c:
             echo_handler_s(client_sock, queue_s, queue_c)
         else:
