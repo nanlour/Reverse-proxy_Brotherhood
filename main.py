@@ -8,10 +8,12 @@ def echo_handler_s(address, client_sock, queue_s, queue_c):
 
     def s_c(queue_c, client_sock):
         msg_c = client_sock.recv(8192)
+        print(1, msg_c)
         queue_c.put(msg_c)
 
     def c_s(queue_s, client_sock):
         msg_s = queue_s.get()
+        print(2, msg_s)
         client_sock.sendall(msg_s)
 
     t1 = Thread(target=c_s, args=(queue_s, client_sock))
@@ -26,10 +28,12 @@ def echo_handler_c(address, client_sock, queue_s, queue_c):
 
     def c_s(queue_s, client_sock):
         msg_s = client_sock.recv(8192)
+        print(3, msg_s)
         queue_s.put(msg_s)
 
     def s_c(queue_c, client_sock):
         msg_c = queue_c.get()
+        print(4, msg_c)
         client_sock.sendall(msg_c)
 
     t1 = Thread(target=c_s, args=(queue_s, client_sock))
