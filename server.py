@@ -1,29 +1,59 @@
-import time
 from socket import socket, AF_INET, SOCK_STREAM
-from threading import Thread
 from queue import Queue
+from threading import Thread
 
-VPS = '127.0.0.1'
+LOCALHOST = 'localhost'
+VPS = ''
 
 
-def server():
-    s_p = socket(AF_INET, SOCK_STREAM)
-    s_p.connect((VPS, 8000))
-    print(2)
-    s_s = socket(AF_INET, SOCK_STREAM)
-    s_s.connect(('localhost', 22))
+def echo_handler_s(client_sock, queue_s, queue_c):
+    def s_c(queue_c, client_sock):
+        msg_c = client_sock.recv(8192)
+        queue_c.put(msg_c)
+
+    def c_s(queue_s, client_sock):
+        msg_s = queue_s.get()
+        client_sock.sendall(msg_s)
+
+    t1 = Thread(target=c_s, args=(queue_s, client_sock))
+    t2 = Thread(target=s_c, args=(queue_c, client_sock))
+    t1.start()
+    t2.start()
+    # client_sock.close()
+
+
+def echo_handler_c(client_sock, queue_s, queue_c):
+    def c_s(queue_s, client_sock):
+        msg_s = client_sock.recv(8192)
+        queue_s.put(msg_s)
+
+    def s_c(queue_c, client_sock):
+        msg_c = queue_c.get()
+        client_sock.sendall(msg_c)
+
+    t1 = Thread(target=c_s, args=(queue_s, client_sock))
+    t2 = Thread(target=s_c, args=(queue_c, client_sock))
+    t1.start()
+    t2.start()
+    # client_sock.close()
+
+
+def echo_server(address, queue_s, queue_c, s_c):
+    client_sock = socket(AF_INET, SOCK_STREAM)
     while True:
-        msg_s = s_p.recv(8192)
-        print(msg_s)
-        s_s.sendall(msg_s)
-        msg_p = s_s.recv(8192)
-        print(msg_p)
-        s_p.sendall(msg_p)
+        try:
+            client_sock.connect(address)
+            if s_c:
+                echo_handler_s(client_sock, queue_s, queue_c)
+            else:
+                echo_handler_c(client_sock, queue_s, queue_c)
+        except:
+            pass
 
 
-while True:
-    try:
-        server()
-    except:
-        print(7)
-        pass
+if __name__ == '__main__':
+    q_s, q_c = Queue(), Queue()
+    t1 = Thread(target=echo_server, args=((VPS, 8000), q_s, q_c, 1))
+    t2 = Thread(target=echo_server, args=((LOCALHOST, 22), q_s, q_c, 0))
+    t1.start()
+    t2.start()

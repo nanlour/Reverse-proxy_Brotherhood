@@ -18,11 +18,12 @@ def echo_handler_s(address, client_sock, queue_s, queue_c):
     t2 = Thread(target=s_c, args=(queue_c, client_sock))
     t1.start()
     t2.start()
-    client_sock.close()
+    # client_sock.close()
 
 
 def echo_handler_c(address, client_sock, queue_s, queue_c):
     print('Got connection from {}'.format(address))
+
     def c_s(queue_s, client_sock):
         msg_s = client_sock.recv(8192)
         queue_s.put(msg_s)
@@ -35,7 +36,7 @@ def echo_handler_c(address, client_sock, queue_s, queue_c):
     t2 = Thread(target=s_c, args=(queue_c, client_sock))
     t1.start()
     t2.start()
-    #client_sock.close()
+    # client_sock.close()
 
 
 def echo_server(address, queue_s, queue_c, s_c, backlog=5):
