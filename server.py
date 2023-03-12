@@ -1,13 +1,13 @@
 from socket import socket, AF_INET, SOCK_STREAM
 from queue import Queue
 from threading import Thread
+import time
 
 LOCALHOST = 'localhost'
 VPS = '192.168.217.93'
 
 
 def echo_handler_s(client_sock, queue_s, queue_c):
-
     def c_s(queue_s, client_sock):
         while True:
             msg_s = queue_s.get()
@@ -27,7 +27,6 @@ def echo_handler_s(client_sock, queue_s, queue_c):
 
 
 def echo_handler_c(client_sock, queue_s, queue_c):
-
     def s_c(queue_c, client_sock):
         while True:
             msg_c = queue_c.get()
@@ -49,16 +48,22 @@ def echo_handler_c(client_sock, queue_s, queue_c):
 def echo_server(address, queue_s, queue_c, s_c):
     client_sock = socket(AF_INET, SOCK_STREAM)
     client_sock.connect(address)
-    while True:
+    try:
         if s_c:
             echo_handler_s(client_sock, queue_s, queue_c)
         else:
             echo_handler_c(client_sock, queue_s, queue_c)
-
+    finally:
+        client_sock.close()
+        print(539)
 
 if __name__ == '__main__':
-    q_s, q_c = Queue(), Queue()
-    t1 = Thread(target=echo_server, args=((VPS, 8000), q_s, q_c, 1))
-    t2 = Thread(target=echo_server, args=((LOCALHOST, 22), q_s, q_c, 0))
-    t1.start()
-    t2.start()
+    while True:
+        try:
+            q_s, q_c = Queue(), Queue()
+            #t1 = Thread(target=echo_server, args=((VPS, 8000), q_s, q_c, 1))
+            t2 = Thread(target=echo_server, args=((LOCALHOST, 8000), q_s, q_c, 0))
+            #t1.start()
+            t2.start()
+        finally:
+            time.sleep(10)
