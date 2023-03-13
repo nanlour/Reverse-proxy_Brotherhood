@@ -22,12 +22,12 @@ def echo_handler(client_sock, client_addr, queue_1, queue_2, queue_q):
             msg_2 = client_sock.recv(8192)
             # if sock closed by remote server, msg_2 = b''
             queue_2.put(msg_2)
-            print(msg_2)
             if not msg_2 or not queue_q.empty():
                 queue_q.put(b'')
                 break
+    except:
+        pass
     finally:
-        print(1244444444444444444444444444444444444444444444444444444444444444444)
         client_sock.close()
         queue_q.put(b'')
 
@@ -43,7 +43,6 @@ def echo_server(address_c, address_s, backlog=5):
     sock_c.listen(backlog)
     while True:
         try:
-            print('new')
             client_sock_c, client_addr_c = sock_c.accept()
             client_sock_s, client_addr_s = sock_s.accept()
 
@@ -55,9 +54,8 @@ def echo_server(address_c, address_s, backlog=5):
             t1.start(), t2.start()
 
             q_q.get(), q_q.put(b'')
-
             q_s.put(b''), q_c.put(b'')
-        finally:
+        except:
             print('finish444444444444444444444444444444444444444444444444444444444444')
             time.sleep(10)
 
